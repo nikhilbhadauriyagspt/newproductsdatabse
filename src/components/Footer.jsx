@@ -127,7 +127,7 @@ export default function Footer() {
                 <span className="absolute -bottom-3 left-0 w-5 h-[2px] bg-[#FF2D37] rounded-full"></span>
               </h4>
               <ul className="space-y-4">
-                {['About Us', 'Contact Us', 'FAQs', 'Track Order'].map(item => (
+                {['About', 'Contact Us', 'FAQs', 'Track Order'].map(item => (
                   <li key={item}>
                     <Link to={`/${item.toLowerCase().replace(' ', '-')}`} className="text-slate-500 hover:text-[#FF2D37] font-bold text-[13px] transition-all">
                       <span>{item}</span>

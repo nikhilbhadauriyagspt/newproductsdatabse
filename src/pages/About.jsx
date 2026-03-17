@@ -188,7 +188,7 @@ export default function About() {
             </h3>
 
             <p className="text-[15px] md:text-[17px] text-[#666] leading-relaxed">
-              Expanding across the United States to deliver professional HP technology with unmatched logistics and long-term service value. Our network ensures you are never without technical support.
+              Expanding across the United States to deliver professional technology solutions with dependable logistics and long-term service value. Our network ensures you always have access to reliable support.
             </p>
           </div>
         </div>

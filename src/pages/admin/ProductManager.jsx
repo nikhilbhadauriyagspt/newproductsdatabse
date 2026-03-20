@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Search, Edit, Trash2, Loader2 } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Loader2, FileSpreadsheet } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import API_BASE_URL from '../../config';
 
@@ -53,9 +53,14 @@ export default function ProductManager() {
           <h1 className="text-2xl font-bold text-slate-900 ">Products</h1>
           <p className="text-sm font-medium text-slate-500">Manage your store inventory ({products.length} items)</p>
         </div>
-        <Link to="/admin/products/add" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold text-sm flex items-center gap-2 transition-all shadow-lg shadow-blue-600/20">
-          <Plus size={18} /> Add New Product
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link to="/admin/products/bulk" className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-3 rounded-xl font-bold text-sm flex items-center gap-2 transition-all">
+            <FileSpreadsheet size={18} /> Bulk Upload
+          </Link>
+          <Link to="/admin/products/add" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold text-sm flex items-center gap-2 transition-all shadow-lg shadow-blue-600/20">
+            <Plus size={18} /> Add New Product
+          </Link>
+        </div>
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">

@@ -31,6 +31,7 @@ import AdminLayout from './layouts/AdminLayout';
 import Dashboard from './pages/admin/Dashboard';
 import ProductManager from './pages/admin/ProductManager';
 import ProductForm from './pages/admin/ProductForm';
+import BulkProductUpload from './pages/admin/BulkProductUpload';
 import CategoryManager from './pages/admin/CategoryManager';
 import OrderManager from './pages/admin/OrderManager';
 import ContactManager from './pages/admin/ContactManager';
@@ -96,6 +97,7 @@ function App() {
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="products" element={<ProductManager />} />
               <Route path="products/add" element={<ProductForm />} />
+              <Route path="products/bulk" element={<BulkProductUpload />} />
               <Route path="products/edit/:id" element={<ProductForm />} />
               <Route path="categories" element={<CategoryManager />} />
               <Route path="orders" element={<OrderManager />} />

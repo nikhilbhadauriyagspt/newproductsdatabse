@@ -214,7 +214,7 @@ export default function Shop() {
                         onClick={() => updateFilter('brand', '')}
                         className="w-full text-left px-4 py-3 text-[12px] font-semibold hover:bg-[#fafafa] text-[#777] border-b border-[#f1f1f1] mb-1"
                       >
-                        All Brands
+                        All Products
                       </button>
                       <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
                         {brands.map((b) => (

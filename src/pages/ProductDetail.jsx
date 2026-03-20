@@ -30,6 +30,7 @@ export default function ProductDetail() {
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
   const [activeTab, setActiveTab] = useState('specs');
+  const [showFullDesc, setShowMore] = useState(false);
 
   const handleAddToCart = () => {
     addToCart(product, quantity);
@@ -270,10 +271,31 @@ export default function ProductDetail() {
                 </div>
 
                 <div className="pt-5 border-t border-[#ededed]">
-                  <p className="text-[15px] md:text-[16px] text-[#666] leading-relaxed">
-                    {product.description ||
-                      'High-performance printing solution designed for professional and everyday use. Experience reliable output, premium build quality, and smooth performance.'}
-                  </p>
+                  <div 
+                    className={`text-[15px] md:text-[16px] text-[#666] leading-relaxed overflow-hidden transition-all duration-500 relative ${!showFullDesc ? 'max-h-[200px]' : 'max-h-[5000px]'}`}
+                  >
+                    <div 
+                      className="prose prose-slate max-w-none product-description"
+                      dangerouslySetInnerHTML={{ __html: product.description || 'High-performance printing solution designed for professional and everyday use.' }}
+                    />
+                    
+                    {!showFullDesc && product.description?.length > 300 && (
+                      <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white to-transparent pointer-events-none" />
+                    )}
+                  </div>
+                  
+                  {product.description?.length > 300 && (
+                    <button 
+                      onClick={() => setShowMore(!showFullDesc)}
+                      className="mt-4 text-[13px] font-bold text-[#ff3b30] flex items-center gap-1 hover:underline uppercase tracking-widest"
+                    >
+                      {showFullDesc ? (
+                        <>Show Less <ArrowRight size={14} className="rotate-[-90deg]" /></>
+                      ) : (
+                        <>Show More <ArrowRight size={14} className="rotate-90" /></>
+                      )}
+                    </button>
+                  )}
                 </div>
 
                 {/* QUANTITY + CART */}

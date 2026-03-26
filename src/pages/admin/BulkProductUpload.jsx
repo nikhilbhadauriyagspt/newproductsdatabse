@@ -105,15 +105,44 @@ export default function BulkProductUpload() {
             return cleaned;
           });
 
-          const response = await fetch(`${API_BASE_URL}/products/bulk`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ products: cleanedData })
+          // Chunked Upload: Send products in batches to avoid server 403 Forbidden / Payload limits
+          const CHUNK_SIZE = 1; // Send 1 product at a time for maximum compatibility
+          let totalSuccess = 0;
+          let totalErrors = [];
+          
+          for (let i = 0; i < cleanedData.length; i += CHUNK_SIZE) {
+            const chunk = cleanedData.slice(i, i + CHUNK_SIZE);
+            const response = await fetch(`${API_BASE_URL}/save-import`, {
+              method: 'POST',
+              headers: { 
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ products: chunk })
+            });
+
+            if (!response.ok) {
+              if (response.status === 403) {
+                throw new Error("Server blocked the request (403 Forbidden). The batch size might be too large or the server's security rules are blocking the upload.");
+              }
+              throw new Error(`Server error: ${response.status} ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            if (data.status === 'success') {
+              totalSuccess += (data.message.match(/\d+/) || [0])[0] * 1;
+              if (data.errors) totalErrors = [...totalErrors, ...data.errors];
+            } else {
+              totalErrors.push(`Batch ${Math.floor(i/CHUNK_SIZE) + 1}: ${data.message}`);
+            }
+          }
+
+          setResult({
+            status: 'success',
+            message: `Successfully imported ${totalSuccess} products in total.`,
+            errors: totalErrors
           });
-          const data = await response.json();
-          setResult(data);
         } catch (err) {
-          setResult({ status: 'error', message: 'Failed to connect to server' });
+          setResult({ status: 'error', message: err.message || 'Failed to connect to server' });
         } finally {
           setLoading(false);
         }

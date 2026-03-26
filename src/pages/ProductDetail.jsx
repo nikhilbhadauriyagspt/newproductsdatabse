@@ -129,8 +129,10 @@ export default function ProductDetail() {
   return (
     <div className="min-h-screen bg-[#f5f5f5] font-['Rubik'] text-[#222] pb-14 md:pb-20">
       <SEO
-        title={product.name}
-        description={product.description?.substring(0, 160)}
+        title={product.meta_title || product.name}
+        description={product.meta_description || product.description?.substring(0, 160)}
+        keywords={product.meta_keywords}
+        canonical={product.canonical_tag}
       />
 
       {/* PAGE HEADER */}
@@ -188,6 +190,24 @@ export default function ProductDetail() {
                   }}
                 />
 
+                <div className="absolute top-4 left-4 flex flex-col gap-2">
+                  {product.is_new == 1 && (
+                    <span className="px-3 py-1 bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-widest rounded-sm shadow-sm">
+                      New Arrival
+                    </span>
+                  )}
+                  {product.is_featured == 1 && (
+                    <span className="px-3 py-1 bg-amber-500 text-white text-[10px] font-bold uppercase tracking-widest rounded-sm shadow-sm">
+                      Featured
+                    </span>
+                  )}
+                  {product.is_popular == 1 && (
+                    <span className="px-3 py-1 bg-blue-500 text-white text-[10px] font-bold uppercase tracking-widest rounded-sm shadow-sm">
+                      Popular
+                    </span>
+                  )}
+                </div>
+
                 <button
                   onClick={() => toggleWishlist(product)}
                   className={`absolute top-4 right-4 w-10 h-10 rounded-full bg-white border border-[#e5e5e5] flex items-center justify-center transition-all ${isInWishlist(product.id)
@@ -202,8 +222,8 @@ export default function ProductDetail() {
                 </button>
 
                 <div className="absolute left-4 bottom-4 inline-flex items-center gap-2 bg-white border border-[#e5e5e5] px-3 py-1.5 rounded-full text-[12px] font-medium text-[#444]">
-                  <span className="w-2 h-2 rounded-full bg-[#ff3b30]" />
-                  Ready To Ship
+                  <span className={`w-2 h-2 rounded-full ${Number(product.quantity) > 0 ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                  {Number(product.quantity) > 0 ? 'In Stock' : 'Out of Stock'}
                 </div>
               </div>
 
@@ -242,6 +262,14 @@ export default function ProductDetail() {
                   <span className="font-medium uppercase tracking-[0.12em] text-[#888]">
                     Genuine Hardware
                   </span>
+                  {product.sku && (
+                    <>
+                      <span className="w-px h-4 bg-[#d8d8d8]" />
+                      <span className="font-medium uppercase tracking-[0.12em] text-[#888]">
+                        SKU: {product.sku}
+                      </span>
+                    </>
+                  )}
                 </div>
 
                 <h2 className="text-[28px] md:text-[38px] font-bold leading-tight text-[#222]">
@@ -251,40 +279,51 @@ export default function ProductDetail() {
                 <div className="flex flex-wrap items-end gap-4">
                   <div>
                     <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#999] mb-1">
-                      Price
+                      Our Price
                     </p>
                     <p className="text-[32px] md:text-[40px] font-bold text-[#ff3b30] leading-none">
                       ${Number(product.price).toFixed(2)}
                     </p>
                   </div>
 
-                  {product.sale_price && (
+                  {product.sale_price && Number(product.sale_price) > Number(product.price) && (
                     <div>
                       <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#999] mb-1">
-                        Old Price
+                        List Price
                       </p>
-                      <p className="text-[20px] text-[#9b9b9b] line-through">
-                        ${product.sale_price}
-                      </p>
+                      <div className="flex items-center gap-3">
+                        <p className="text-[20px] text-[#9b9b9b] line-through">
+                          ${Number(product.sale_price).toFixed(2)}
+                        </p>
+                        <span className="px-2 py-0.5 bg-red-50 text-red-600 text-[11px] font-bold rounded-sm border border-red-100">
+                          SAVE {Math.round(((Number(product.sale_price) - Number(product.price)) / Number(product.sale_price)) * 100)}%
+                        </span>
+                      </div>
                     </div>
                   )}
                 </div>
 
                 <div className="pt-5 border-t border-[#ededed]">
+                  {product.description && (
+                    <p className="text-[15px] font-medium text-[#444] leading-relaxed mb-4">
+                      {product.description}
+                    </p>
+                  )}
+                  
                   <div 
                     className={`text-[15px] md:text-[16px] text-[#666] leading-relaxed overflow-hidden transition-all duration-500 relative ${!showFullDesc ? 'max-h-[300px]' : 'max-h-[10000px]'}`}
                   >
                     <div 
                       className="prose prose-slate max-w-none product-description"
-                      dangerouslySetInnerHTML={{ __html: product.content || product.description || 'High-performance printing solution designed for professional and everyday use.' }}
+                      dangerouslySetInnerHTML={{ __html: product.content || 'High-performance printing solution designed for professional and everyday use.' }}
                     />
                     
-                    {!showFullDesc && (product.content?.length > 500 || product.description?.length > 500) && (
+                    {!showFullDesc && (product.content?.length > 500) && (
                       <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white to-transparent pointer-events-none" />
                     )}
                   </div>
                   
-                  {(product.content?.length > 500 || product.description?.length > 500) && (
+                  {(product.content?.length > 500) && (
                     <button 
                       onClick={() => setShowMore(!showFullDesc)}
                       className="mt-4 text-[13px] font-bold text-[#ff3b30] flex items-center gap-1 hover:underline uppercase tracking-widest"
@@ -303,11 +342,16 @@ export default function ProductDetail() {
                   <div className="pt-6 border-t border-[#ededed]">
                     <h3 className="text-[14px] font-bold uppercase tracking-widest text-[#222] mb-4 flex items-center gap-2">
                       <span className="w-1.5 h-1.5 bg-[#ff3b30] rounded-full" />
-                      Key Highlights
+                      Key Features
                     </h3>
-                    <div className="text-[14px] text-[#666] space-y-2 leading-relaxed whitespace-pre-line">
-                      {product.key_features}
-                    </div>
+                    <ul className="text-[14px] text-[#666] space-y-3">
+                      {product.key_features.split('\n').filter(line => line.trim()).map((feature, i) => (
+                        <li key={i} className="flex gap-3">
+                          <CheckCircle2 size={16} className="text-emerald-500 shrink-0 mt-0.5" />
+                          <span>{feature.replace(/^[•*-]\s*/, '')}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 )}
 
@@ -336,10 +380,12 @@ export default function ProductDetail() {
 
                     <button
                       onClick={handleAddToCart}
-                      disabled={isAdded}
+                      disabled={isAdded || Number(product.quantity) <= 0}
                       className={`flex-1 h-[48px] inline-flex items-center justify-center gap-2 text-[13px] font-semibold uppercase transition-all ${isAdded
                           ? 'bg-emerald-500 text-white'
-                          : 'bg-[#111] text-white hover:bg-[#ff3b30]'
+                          : Number(product.quantity) <= 0 
+                            ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                            : 'bg-[#111] text-white hover:bg-[#ff3b30]'
                         }`}
                     >
                       {isAdded ? (
@@ -347,6 +393,8 @@ export default function ProductDetail() {
                           <CheckCircle2 size={18} />
                           Added To Cart
                         </>
+                      ) : Number(product.quantity) <= 0 ? (
+                        'Out of Stock'
                       ) : (
                         <>
                           <ShoppingCart size={18} />
@@ -365,7 +413,7 @@ export default function ProductDetail() {
                       <div>
                         <p className="text-[14px] font-semibold text-[#222]">Fast Delivery</p>
                         <p className="text-[12px] text-[#888] uppercase tracking-[0.12em]">
-                          Safe Logistics
+                          Within 3-5 Days
                         </p>
                       </div>
                     </div>
@@ -377,7 +425,7 @@ export default function ProductDetail() {
                       <div>
                         <p className="text-[14px] font-semibold text-[#222]">Full Warranty</p>
                         <p className="text-[12px] text-[#888] uppercase tracking-[0.12em]">
-                          {product.warranty || 'Brand Protected'}
+                          {product.warranty || '1 Year Brand Warranty'}
                         </p>
                       </div>
                     </div>
@@ -414,14 +462,14 @@ export default function ProductDetail() {
                     {activeTab === 'specs' && (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10">
                         {[
-                          { label: 'Manufacturer', value: product.brand_name || 'Certified Partner' },
-                          { label: 'Model', value: product.model || product.model_number || 'Premium Series' },
-                          { label: 'Print Speed', value: product.print_speed || 'High Speed' },
-                          { label: 'Resolution', value: product.print_resolution || 'Ultra HD' },
-                          { label: 'Connectivity', value: product.connectivity || 'Smart Network' },
-                          { label: 'Deployment', value: 'Enterprise Hardware' },
-                          { label: 'Warranty', value: product.warranty || '1 Year' },
-                          { label: 'Condition', value: '100% Genuine New' },
+                          { label: 'Brand', value: product.brand_name || 'N/A' },
+                          { label: 'Model', value: product.model || 'N/A' },
+                          { label: 'Model Number', value: product.model_number || 'N/A' },
+                          { label: 'Print Speed', value: product.print_speed || 'N/A' },
+                          { label: 'Print Resolution', value: product.print_resolution || 'N/A' },
+                          { label: 'Connectivity', value: product.connectivity || 'N/A' },
+                          { label: 'Warranty', value: product.warranty || 'N/A' },
+                          { label: 'Condition', value: 'Brand New' },
                         ].map((spec, i) => (
                           <div
                             key={i}

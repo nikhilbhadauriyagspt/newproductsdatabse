@@ -272,19 +272,19 @@ export default function ProductDetail() {
 
                 <div className="pt-5 border-t border-[#ededed]">
                   <div 
-                    className={`text-[15px] md:text-[16px] text-[#666] leading-relaxed overflow-hidden transition-all duration-500 relative ${!showFullDesc ? 'max-h-[200px]' : 'max-h-[5000px]'}`}
+                    className={`text-[15px] md:text-[16px] text-[#666] leading-relaxed overflow-hidden transition-all duration-500 relative ${!showFullDesc ? 'max-h-[300px]' : 'max-h-[10000px]'}`}
                   >
                     <div 
                       className="prose prose-slate max-w-none product-description"
-                      dangerouslySetInnerHTML={{ __html: product.description || 'High-performance printing solution designed for professional and everyday use.' }}
+                      dangerouslySetInnerHTML={{ __html: product.content || product.description || 'High-performance printing solution designed for professional and everyday use.' }}
                     />
                     
-                    {!showFullDesc && product.description?.length > 300 && (
+                    {!showFullDesc && (product.content?.length > 500 || product.description?.length > 500) && (
                       <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white to-transparent pointer-events-none" />
                     )}
                   </div>
                   
-                  {product.description?.length > 300 && (
+                  {(product.content?.length > 500 || product.description?.length > 500) && (
                     <button 
                       onClick={() => setShowMore(!showFullDesc)}
                       className="mt-4 text-[13px] font-bold text-[#ff3b30] flex items-center gap-1 hover:underline uppercase tracking-widest"
@@ -297,6 +297,19 @@ export default function ProductDetail() {
                     </button>
                   )}
                 </div>
+
+                {/* KEY FEATURES */}
+                {product.key_features && (
+                  <div className="pt-6 border-t border-[#ededed]">
+                    <h3 className="text-[14px] font-bold uppercase tracking-widest text-[#222] mb-4 flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 bg-[#ff3b30] rounded-full" />
+                      Key Highlights
+                    </h3>
+                    <div className="text-[14px] text-[#666] space-y-2 leading-relaxed whitespace-pre-line">
+                      {product.key_features}
+                    </div>
+                  </div>
+                )}
 
                 {/* QUANTITY + CART */}
                 <div className="pt-2 space-y-5">
@@ -364,7 +377,7 @@ export default function ProductDetail() {
                       <div>
                         <p className="text-[14px] font-semibold text-[#222]">Full Warranty</p>
                         <p className="text-[12px] text-[#888] uppercase tracking-[0.12em]">
-                          Brand Protected
+                          {product.warranty || 'Brand Protected'}
                         </p>
                       </div>
                     </div>
@@ -401,12 +414,13 @@ export default function ProductDetail() {
                     {activeTab === 'specs' && (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10">
                         {[
-                          {
-                            label: 'Manufacturer',
-                            value: product.brand_name || 'Certified Partner',
-                          },
-                          { label: 'Product Class', value: 'Enterprise Hardware' },
-                          { label: 'Deployment', value: 'Smart Connectivity' },
+                          { label: 'Manufacturer', value: product.brand_name || 'Certified Partner' },
+                          { label: 'Model', value: product.model || product.model_number || 'Premium Series' },
+                          { label: 'Print Speed', value: product.print_speed || 'High Speed' },
+                          { label: 'Resolution', value: product.print_resolution || 'Ultra HD' },
+                          { label: 'Connectivity', value: product.connectivity || 'Smart Network' },
+                          { label: 'Deployment', value: 'Enterprise Hardware' },
+                          { label: 'Warranty', value: product.warranty || '1 Year' },
                           { label: 'Condition', value: '100% Genuine New' },
                         ].map((spec, i) => (
                           <div

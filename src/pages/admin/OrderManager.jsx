@@ -15,7 +15,9 @@ import {
   Mail,
   X,
   ChevronRight,
-  Loader2
+  Loader2,
+  Globe,
+  FileText
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import API_BASE_URL from '../../config';
@@ -210,7 +212,7 @@ export default function OrderManager() {
                     <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 capitalize tracking-[0.2em]">
                       <User size={12} /> Customer Information
                     </div>
-                    <div className="bg-gray-50 rounded-2xl p-6">
+                    <div className="bg-gray-50 rounded-2xl p-6 h-full">
                       <p className="text-sm font-bold text-slate-900 capitalize">{selectedOrder.first_name} {selectedOrder.last_name}</p>
                       <div className="flex items-center gap-2 text-xs font-bold text-slate-500 mt-2 lowercase"><Mail size={12} /> {selectedOrder.guest_email}</div>
                       <div className="flex items-center gap-2 text-xs font-bold text-slate-500 mt-1 capitalize"><Phone size={12} /> {selectedOrder.phone}</div>
@@ -220,7 +222,7 @@ export default function OrderManager() {
                     <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 capitalize tracking-[0.2em]">
                       <MapPin size={12} /> Shipping Address
                     </div>
-                    <div className="bg-gray-50 rounded-2xl p-6">
+                    <div className="bg-gray-50 rounded-2xl p-6 h-full">
                       <p className="text-xs font-bold text-slate-700 leading-relaxed capitalize">
                         {selectedOrder.address}<br />
                         {selectedOrder.city}, {selectedOrder.zip_code}
@@ -228,6 +230,32 @@ export default function OrderManager() {
                     </div>
                   </div>
                 </div>
+
+                {/* Extra Info */}
+                {(selectedOrder.notes || selectedOrder.origin) && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 capitalize tracking-[0.2em]">
+                        <FileText size={12} /> Order Notes
+                      </div>
+                      <div className="bg-gray-50 rounded-2xl p-6 h-full">
+                        <p className="text-xs font-bold text-slate-700 leading-relaxed">
+                          {selectedOrder.notes || "No notes provided."}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 capitalize tracking-[0.2em]">
+                        <Globe size={12} /> Source (Origin)
+                      </div>
+                      <div className="bg-gray-50 rounded-2xl p-6 h-full">
+                        <p className="text-xs font-bold text-blue-600 truncate">
+                          {selectedOrder.origin || "Unknown Origin"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Order Items */}
                 <div className="space-y-4">

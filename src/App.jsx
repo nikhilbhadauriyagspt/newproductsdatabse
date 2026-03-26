@@ -26,6 +26,7 @@ import FAQ from './pages/FAQ';
 import Profile from './pages/Profile';
 import UserLogin from './pages/UserLogin';
 import UserSignup from './pages/UserSignup';
+import ForgotPassword from './pages/ForgotPassword';
 import AdminLogin from './pages/AdminLogin';
 import AdminLayout from './layouts/AdminLayout';
 import Dashboard from './pages/admin/Dashboard';
@@ -87,6 +88,7 @@ function App() {
             <Route path="/shipping-policy" element={<ShopLayout><ShippingPolicy /></ShopLayout>} />
             <Route path="/login" element={<ShopLayout><UserLogin /></ShopLayout>} />
             <Route path="/signup" element={<ShopLayout><UserSignup /></ShopLayout>} />
+            <Route path="/forgot-password" element={<ShopLayout><ForgotPassword /></ShopLayout>} />
 
             {/* Admin Auth */}
             <Route path="/admin-login" element={<AdminLogin />} />

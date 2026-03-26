@@ -45,6 +45,7 @@ export default function BulkProductUpload() {
       Papa.parse(selectedFile, {
         header: true,
         skipEmptyLines: true,
+        transformHeader: (header) => header.trim(),
         complete: (results) => {
           setPreviewData(results.data.slice(0, 5)); // Show first 5 rows
         }
@@ -53,8 +54,8 @@ export default function BulkProductUpload() {
   };
 
   const downloadSampleCSV = () => {
-    const headers = "name,price,sale_price,quantity,sku,description,category_id,brand_id,images,is_featured,is_new,is_popular,is_trending\n";
-    const sample = "Example Printer,299.99,,10,SKU001,Great printer for office,39,5,\"products/p1.png, products/p2.png\",0,1,0,0";
+    const headers = "name,price,sale_price,quantity,sku,description,content,status,category_id,brand_id,images,is_featured,is_new,is_popular,is_trending,model,model_number,key_features,print_speed,print_resolution,connectivity,warranty,meta_title,meta_description,meta_keywords,canonical_tag\n";
+    const sample = "HP LaserJet Pro M404dn,299.99,,10,M404dn,High-quality mono printer,\"<p>Full content here</p>\",published,39,5,\"products/hp1.png\",1,1,0,0,LaserJet Pro,M404dn,\"• Fast printing\n• Dual-band Wi-Fi\",40 ppm,1200 dpi,\"USB, Ethernet, Wi-Fi\",1 Year,Buy HP LaserJet Pro M404dn,Best office printer,HP Printer LaserJet,https://dashprintershop.com/product/hp-laserjet-pro-m404dn";
     const blob = new Blob([headers + sample], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -71,12 +72,43 @@ export default function BulkProductUpload() {
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
+      transformHeader: (header) => header.trim(),
       complete: async (results) => {
         try {
+          // Clean and format data
+          const cleanedData = results.data.map(row => {
+            const cleaned = {};
+            Object.keys(row).forEach(key => {
+              let val = row[key]?.toString().trim();
+              
+              // Map empty strings to null or appropriate defaults
+              if (val === "" || val === undefined) {
+                  if (['price', 'sale_price', 'quantity', 'brand_id', 'category_id', 'is_featured', 'is_new', 'is_popular', 'is_trending'].includes(key)) {
+                      val = null;
+                  } else {
+                      val = "";
+                  }
+              }
+
+              // Ensure numeric types and clean currency/commas
+              if (['price', 'sale_price', 'quantity', 'brand_id', 'category_id', 'is_featured', 'is_new', 'is_popular', 'is_trending'].includes(key) && val !== null) {
+                  if (typeof val === 'string' && (key === 'price' || key === 'sale_price')) {
+                      // Remove everything except numbers and decimal point
+                      val = val.replace(/[^\d.]/g, '');
+                  }
+                  const num = Number(val);
+                  val = isNaN(num) ? null : num;
+              }
+
+              cleaned[key] = val;
+            });
+            return cleaned;
+          });
+
           const response = await fetch(`${API_BASE_URL}/products/bulk`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ products: results.data })
+            body: JSON.stringify({ products: cleanedData })
           });
           const data = await response.json();
           setResult(data);

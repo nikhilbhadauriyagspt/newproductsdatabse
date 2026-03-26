@@ -9,7 +9,8 @@ import {
   X,
   Search,
   Loader2,
-  Trash2
+  Trash2,
+  Globe
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import API_BASE_URL from '../../config';
@@ -186,6 +187,16 @@ export default function ContactManager() {
                   <p className="text-xs font-bold text-slate-500 capitalize">{new Date(selectedContact.created_at).toLocaleString()}</p>
                 </div>
               </div>
+
+              {selectedContact.origin && (
+                <div className="mb-10 flex items-center gap-3 px-6 py-4 bg-blue-50/50 border border-blue-100 rounded-2xl">
+                   <Globe size={18} className="text-blue-600" />
+                   <div>
+                     <p className="text-[9px] font-bold text-slate-400 capitalize tracking-widest">Inquiry Source</p>
+                     <p className="text-xs font-bold text-blue-600">{selectedContact.origin}</p>
+                   </div>
+                </div>
+              )}
 
               <div className="bg-gray-50 rounded-[2rem] p-8 mb-10 border border-gray-100">
                 <p className="text-[9px] font-bold text-slate-400 capitalize tracking-widest mb-4">Message</p>

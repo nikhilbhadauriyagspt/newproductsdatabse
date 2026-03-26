@@ -1,16 +1,26 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Mail, Lock, Eye, EyeOff, ArrowRight, Loader2, ShieldCheck, ChevronLeft, Sparkles } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Eye, EyeOff, Loader2, CheckCircle2 } from 'lucide-react';
 import API_BASE_URL from '../config';
 
 export default function UserLogin() {
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Load remembered user
+  useEffect(() => {
+    const savedUser = localStorage.getItem('remembered_user');
+    if (savedUser) {
+      setIdentifier(savedUser);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -21,135 +31,141 @@ export default function UserLogin() {
       const response = await fetch(`${API_BASE_URL}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'user', identifier: email, password })
+        body: JSON.stringify({ type: 'user', identifier, password })
       });
 
       const data = await response.json();
 
       if (data.status === 'success') {
+        // Handle Remember Me
+        if (rememberMe) {
+          localStorage.setItem('remembered_user', identifier);
+        } else {
+          localStorage.removeItem('remembered_user');
+        }
+
         localStorage.setItem('user', JSON.stringify(data.data));
         window.dispatchEvent(new Event('storage'));
         navigate('/');
       } else {
-        setError(data.message || 'Login failed');
+        setError(data.message || 'Invalid credentials');
       }
     } catch (err) {
-      setError('Could not connect to server.');
+      console.error('Login Error:', err);
+      setError('Connection error. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#fafbfc] font-['Rubik'] px-6 py-20">
+    <div className="min-h-screen bg-white md:bg-[#f8f9fa] flex flex-col items-center pt-8 md:pt-12 font-['Inter',sans-serif]">
+      {/* Brand Logo */}
+      <Link to="/" className="mb-8">
+        <img src="/logo/logo.png" alt="Logo" className="h-10 md:h-12 object-contain" />
+      </Link>
 
-      <div className="max-w-[1000px] w-full grid grid-cols-1 lg:grid-cols-2 bg-white rounded-[3rem] overflow-hidden border border-slate-100">
+      <div className="w-full max-w-[400px] bg-white md:border md:border-gray-200 md:rounded-lg p-6 md:p-8 md:shadow-sm">
+        <h1 className="text-2xl font-medium text-gray-900 mb-6">Login</h1>
 
-        {/* Left Side: Professional Message */}
-        <div className="hidden lg:flex flex-col justify-between p-16 bg-slate-950 relative overflow-hidden">
-          <div className="relative z-10">
-            <Link to="/" className="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-all mb-16 group">
-              <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-              <span className="text-[11px] font-bold uppercase tracking-widest">Back to store</span>
-            </Link>
-
-            <div className="space-y-6">
-              <div className="flex items-center gap-3 text-[#FF2D37]">
-                <Sparkles size={20} />
-                <span className="text-[11px] font-black uppercase tracking-[3px]">Member Access</span>
-              </div>
-              <h2 className="text-4xl lg:text-5xl font-black text-white leading-tight tracking-tight capitalize">
-                Welcome <br /> back to studio
-              </h2>
-              <p className="text-slate-400 text-lg font-medium leading-relaxed max-w-xs mt-4">
-                Secure access to your saved products, orders, and technical help.
-              </p>
-            </div>
-          </div>
-
-          <div className="relative z-10 flex items-center gap-3 text-slate-500 text-xs font-bold uppercase tracking-widest">
-            <ShieldCheck size={16} className="text-[#FF2D37]" />
-            <span>End-to-end encrypted session</span>
-          </div>
-
-          <div className="absolute top-0 right-0 w-64 h-64 bg-[#FF2D37] opacity-10 blur-[100px] rounded-full pointer-events-none" />
-        </div>
-
-        {/* Right Side: Form Stage */}
-        <div className="p-10 md:p-16 flex flex-col justify-center bg-white">
-          <div className="mb-12">
-            <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight mb-2 capitalize">Sign In</h1>
-            <p className="text-[11px] font-bold uppercase tracking-widest text-[#FF2D37]">Access your professional account</p>
-          </div>
-
-          <form onSubmit={handleLogin} className="space-y-8">
+        <form onSubmit={handleLogin} className="space-y-4">
+          <AnimatePresence>
             {error && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="p-4 bg-red-50 text-red-600 text-xs font-bold uppercase tracking-widest rounded-xl border border-red-100 text-center"
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-3 bg-red-50 border border-red-100 rounded text-red-600 text-sm flex items-center gap-2"
               >
+                <div className="w-1 h-1 bg-red-600 rounded-full" />
                 {error}
               </motion.div>
             )}
+          </AnimatePresence>
 
-            <div className="space-y-6">
-              <div className="space-y-2.5">
-                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Email address</label>
-                <div className="relative group">
-                  <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-[#FF2D37] transition-colors" size={18} />
-                  <input
-                    required
-                    type="email"
-                    placeholder="name@company.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full h-16 pl-14 pr-6 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:border-[#FF2D37] outline-none text-[15px] font-bold text-slate-900 transition-all shadow-sm"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2.5">
-                <div className="flex justify-between items-center px-1">
-                  <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Password</label>
-                  <Link to="#" className="text-[10px] font-bold text-[#FF2D37] hover:underline uppercase tracking-widest">Forgot?</Link>
-                </div>
-                <div className="relative group">
-                  <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-[#FF2D37] transition-colors" size={18} />
-                  <input
-                    required
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Enter password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full h-16 pl-14 pr-14 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:border-[#FF2D37] outline-none text-[15px] font-bold text-slate-900 transition-all shadow-sm"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#FF2D37] transition-colors"
-                  >
-                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <button
-              disabled={loading}
-              className="w-full h-16 bg-slate-950 text-white flex items-center justify-center gap-3 text-sm font-bold uppercase tracking-widest rounded-full hover:bg-[#FF2D37] transition-all active:scale-95 disabled:opacity-70 group"
-            >
-              {loading ? <Loader2 className="animate-spin" size={24} /> : <>Sign In <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" /></>}
-            </button>
-          </form>
-
-          <div className="mt-12 pt-8 border-t border-slate-100 text-center">
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
-              New to our platform?{' '}
-              <Link to="/signup" className="text-[#FF2D37] hover:underline ml-1 font-black">Create account</Link>
-            </p>
+          <div className="space-y-1">
+            <label className="text-sm font-bold text-gray-700 ml-0.5">Email or Mobile phone number</label>
+            <input
+              required
+              type="text"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+              className="w-full h-10 px-3 border border-gray-400 rounded focus:border-[#FF2D37] focus:ring-1 focus:ring-[#FF2D37] outline-none transition-all text-[15px]"
+            />
           </div>
+
+          <div className="space-y-1">
+            <div className="flex justify-between items-center">
+              <label className="text-sm font-bold text-gray-700 ml-0.5">Password</label>
+              <Link to="/forgot-password" size={14} className="text-xs text-blue-600 hover:text-orange-700 hover:underline">Forgot password?</Link>
+            </div>
+            <div className="relative">
+              <input
+                required
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full h-10 px-3 pr-10 border border-gray-400 rounded focus:border-[#FF2D37] focus:ring-1 focus:ring-[#FF2D37] outline-none transition-all text-[15px]"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+          </div>
+
+          {/* Remember Me Checkbox */}
+          <div className="flex items-center gap-2 py-1">
+            <label className="flex items-center cursor-pointer group select-none">
+              <input 
+                type="checkbox" 
+                className="sr-only peer" 
+                checked={rememberMe}
+                onChange={() => setRememberMe(!rememberMe)}
+              />
+              <div className="w-4 h-4 bg-white border border-gray-400 rounded peer-checked:bg-[#FF2D37] peer-checked:border-[#FF2D37] transition-all flex items-center justify-center">
+                <CheckCircle2 size={10} className="text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
+              </div>
+              <span className="ml-2 text-[13px] text-gray-700 group-hover:text-gray-900 transition-colors">Keep me signed in</span>
+            </label>
+          </div>
+
+          <button
+            disabled={loading}
+            className="w-full h-10 bg-[#FF2D37] hover:bg-[#e62a32] text-white rounded font-medium shadow-sm transition-colors flex items-center justify-center gap-2 mt-2"
+          >
+            {loading ? <Loader2 className="animate-spin" size={20} /> : 'Continue'}
+          </button>
+
+          <p className="text-[12px] text-gray-600 leading-normal pt-2">
+            By continuing, you agree to our <Link to="/terms" className="text-blue-600 hover:underline">Terms of Use</Link> and <Link to="/privacy" className="text-blue-600 hover:underline">Privacy Policy</Link>.
+          </p>
+        </form>
+      </div>
+
+      <div className="w-full max-w-[400px] mt-8 flex flex-col items-center">
+        <div className="w-full flex items-center gap-3 mb-4">
+          <div className="flex-1 h-[1px] bg-gray-200" />
+          <span className="text-xs text-gray-500 whitespace-nowrap">New to our shop?</span>
+          <div className="flex-1 h-[1px] bg-gray-200" />
         </div>
+        
+        <Link 
+          to="/signup" 
+          className="w-full h-10 bg-white border border-gray-300 rounded shadow-sm hover:bg-gray-50 flex items-center justify-center text-sm font-medium text-gray-700 transition-colors"
+        >
+          Create your account
+        </Link>
+      </div>
+
+      {/* Footer Links */}
+      <div className="mt-auto py-8 flex flex-wrap justify-center gap-x-6 gap-y-2 border-t border-gray-200 w-full bg-gray-50 md:bg-transparent">
+        <Link to="/terms" className="text-[11px] text-blue-600 hover:underline">Conditions of Use</Link>
+        <Link to="/privacy" className="text-[11px] text-blue-600 hover:underline">Privacy Notice</Link>
+        <Link to="/help" className="text-[11px] text-blue-600 hover:underline">Help</Link>
+        <p className="text-[11px] text-gray-500 w-full text-center mt-2">© 2024-2026, Dash Printer Shop or its affiliates</p>
       </div>
     </div>
   );

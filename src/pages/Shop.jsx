@@ -333,7 +333,7 @@ export default function Shop() {
                       <img
                         src={getImagePath(p.images)}
                         alt={p.name}
-                        className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
+                        className="w-full h-full mix-blend-multiply object-contain transition-transform duration-500 group-hover:scale-105"
                         onError={(e) => {
                           e.currentTarget.src = '/logo/fabicon.png';
                         }}

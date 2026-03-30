@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import SEO from '@/components/SEO';
+
+import DOMPurify from "dompurify";
 import { useCart } from '../context/CartContext';
 import {
   Heart,
@@ -15,6 +17,7 @@ export default function ProductDetail() {
   const { addToCart, toggleWishlist, isInWishlist } = useCart();
   const [isAdded, setIsAdded] = useState(false);
   const { slug } = useParams();
+  const [showFullDesc, setShowFullDesc] = useState(false);
 
   const [product, setProduct] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
@@ -168,6 +171,13 @@ export default function ProductDetail() {
   const mainImage = images.length > 0 ? images[safeActiveImage] : '/logo/fabicon.png';
   const thumbnails = images.length > 1 ? images : [];
 
+  // Price Calculation Logic
+  const priceVal = Number(product.price) || 0;
+  const salePriceVal = Number(product.sale_price) || 0;
+  const isSale = salePriceVal > 0 && salePriceVal < priceVal;
+  const actualPrice = isSale ? salePriceVal : priceVal;
+  const strikethroughPrice = isSale ? priceVal : (salePriceVal > priceVal ? salePriceVal : null);
+
   return (
     <div className="min-h-screen bg-white font-['Rubik'] text-gray-900 pb-20">
       <SEO
@@ -199,8 +209,8 @@ export default function ProductDetail() {
                     onMouseEnter={() => setActiveImage(idx)}
                     onClick={() => setActiveImage(idx)}
                     className={`w-12 h-12 md:w-14 md:h-14 border p-1 rounded transition-all ${safeActiveImage === idx
-                        ? 'border-orange-500 ring-1 ring-orange-500'
-                        : 'border-gray-200 hover:border-gray-400'
+                      ? 'border-orange-500 ring-1 ring-orange-500'
+                      : 'border-gray-200 hover:border-gray-400'
                       }`}
                   >
                     <img src={img} alt="" className="w-full h-full object-contain" />
@@ -219,8 +229,8 @@ export default function ProductDetail() {
               <button
                 onClick={() => toggleWishlist(product)}
                 className={`absolute top-4 right-4 w-10 h-10 rounded-full bg-white shadow-md border border-gray-100 flex items-center justify-center transition-all ${isInWishlist(product.id)
-                    ? 'text-red-500'
-                    : 'text-gray-300 hover:text-red-500'
+                  ? 'text-red-500'
+                  : 'text-gray-300 hover:text-red-500'
                   }`}
               >
                 <Heart size={20} className={isInWishlist(product.id) ? 'fill-red-500' : ''} />
@@ -236,20 +246,38 @@ export default function ProductDetail() {
               <h1 className="text-xl md:text-2xl font-medium text-gray-900 mt-1 leading-tight">
                 {product.name}
               </h1>
-              <div className="flex items-center gap-2 mt-2 text-xs">
+              {product.content && (
+                <div
+                  className="text-sm text-gray-500 mt-2 font-medium italic"
+                  dangerouslySetInnerHTML={{
+                    __html: DOMPurify.sanitize(product.content),
+                  }}
+                />
+              )}
+              <div className="flex flex-wrap items-center gap-2 mt-3 text-[10px] font-bold uppercase tracking-tighter">
                 <span className="text-gray-400">SKU: {product.sku || 'N/A'}</span>
-                <span className="text-gray-200">|</span>
-                <span className="text-emerald-600 font-bold uppercase tracking-tighter">
-                  Official Product
-                </span>
+                <span className="text-gray-200 text-xs">|</span>
+                <span className="text-emerald-600">Official Product</span>
+                {product.is_popular === 1 && (
+                  <>
+                    <span className="text-gray-200 text-xs">|</span>
+                    <span className="text-blue-600">Popular Choice</span>
+                  </>
+                )}
+                {product.is_new === 1 && (
+                  <>
+                    <span className="text-gray-200 text-xs">|</span>
+                    <span className="text-orange-600">New Arrival</span>
+                  </>
+                )}
               </div>
             </div>
 
             <div className="lg:hidden py-4 border-b border-gray-100">
-              <p className="text-2xl font-medium text-red-600">${Number(product.price).toFixed(2)}</p>
-              {product.sale_price && (
+              <p className="text-2xl font-medium text-red-600">${actualPrice.toFixed(2)}</p>
+              {strikethroughPrice && (
                 <p className="text-sm text-gray-400 line-through">
-                  ${Number(product.sale_price).toFixed(2)}
+                  ${strikethroughPrice.toFixed(2)}
                 </p>
               )}
             </div>
@@ -275,9 +303,22 @@ export default function ProductDetail() {
 
             <div className="pt-6 border-t border-gray-100">
               <h3 className="text-sm font-bold mb-2">Description</h3>
-              <p className="text-sm text-gray-600 leading-relaxed">
+
+              <p
+                className={`text-sm text-gray-600 leading-relaxed ${showFullDesc ? '' : 'line-clamp-9'
+                  }`}
+              >
                 {product.description || 'No description available for this hardware.'}
               </p>
+
+              {product.description && product.description.length > 300 && (
+                <button
+                  onClick={() => setShowFullDesc(!showFullDesc)}
+                  className="text-blue-600 text-sm mt-2 font-medium hover:underline"
+                >
+                  {showFullDesc ? 'Show Less' : 'Show More'}
+                </button>
+              )}
             </div>
           </div>
 
@@ -287,19 +328,19 @@ export default function ProductDetail() {
                 <div className="flex items-start gap-1">
                   <span className="text-sm font-medium mt-1">$</span>
                   <span className="text-3xl font-medium leading-none">
-                    {Number(product.price).toFixed(2).split('.')[0]}
+                    {actualPrice.toFixed(2).split('.')[0]}
                   </span>
                   <span className="text-sm font-medium mt-1">
-                    {Number(product.price).toFixed(2).split('.')[1]}
+                    {actualPrice.toFixed(2).split('.')[1]}
                   </span>
                 </div>
-                {product.sale_price && Number(product.sale_price) > Number(product.price) && (
+                {strikethroughPrice && (
                   <div className="flex items-center gap-2 mt-2">
                     <span className="text-sm text-gray-500">
-                      List: <span className="line-through">${Number(product.sale_price).toFixed(2)}</span>
+                      List: <span className="line-through">${strikethroughPrice.toFixed(2)}</span>
                     </span>
                     <span className="text-xs font-bold text-red-600">
-                      Save {Math.round(((Number(product.sale_price) - Number(product.price)) / Number(product.sale_price)) * 100)}%
+                      Save {Math.round(((strikethroughPrice - actualPrice) / strikethroughPrice) * 100)}%
                     </span>
                   </div>
                 )}
@@ -332,8 +373,8 @@ export default function ProductDetail() {
                       onClick={handleAddToCart}
                       disabled={isAdded}
                       className={`w-full h-10 rounded-full font-medium text-sm transition-all shadow-sm ${isAdded
-                          ? 'bg-emerald-500 text-white'
-                          : 'bg-yellow-400 hover:bg-yellow-500 text-gray-900'
+                        ? 'bg-emerald-500 text-white'
+                        : 'bg-yellow-400 hover:bg-yellow-500 text-gray-900'
                         }`}
                     >
                       {isAdded ? 'Added to Cart' : 'Add to Cart'}
@@ -363,6 +404,28 @@ export default function ProductDetail() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Technical Specifications Section - Moved to a new full-width row */}
+        <div className="mt-12 pt-10 border-t border-gray-100">
+          <h3 className="text-lg font-bold mb-6">Technical Specifications</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-4">
+            {[
+              { label: 'Model', value: product.model },
+              { label: 'Model Number', value: product.model_number },
+              { label: 'Print Speed', value: product.print_speed },
+              { label: 'Resolution', value: product.print_resolution },
+              { label: 'Connectivity', value: product.connectivity },
+              { label: 'Warranty', value: product.warranty },
+              { label: 'SKU', value: product.sku },
+              { label: 'Brand', value: product.brand_name },
+            ].map((spec, i) => spec.value && (
+              <div key={i} className="flex py-3 border-b border-gray-50 text-sm items-baseline">
+                <span className="w-1/3 text-gray-500 font-medium">{spec.label}</span>
+                <span className="w-2/3 text-gray-900 font-semibold">{spec.value}</span>
+              </div>
+            ))}
           </div>
         </div>
 
